@@ -267,7 +267,8 @@ def validate_instrumentLib():
 			print "Instrument name {0} is not a valid Matlab Name".format(name)
 		errors.append(invalidNames)
 	
-	print errors
+	if errors != []:
+		print errors
 	return errors
 
 
@@ -297,8 +298,16 @@ def validate_channelLib():
 	if rp_errors != []:		
 		errors.append(rp_errors)		
 
-	print errors
+	if errors != []: 
+		print errors
 	return errors
+
+def validate_dynamic_lib(channelsLib, instrumentLib):
+	global channels
+	global instruments
+	channels = channelsLib
+	instruments = instrumentLib.instrDict
+	return validate_lib()
 
 def validate_lib():
 	validates = True
