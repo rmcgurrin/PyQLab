@@ -1,7 +1,7 @@
 {
-	"AWGDir": "/my/path/here/",
-	"ChannelLibraryFile": "/my/path/to/ChannelParams.json",
-	"InstrumentLibraryFile": "/my/path/to/Instruments.json",
-	"SweepLibraryFile": "/my/path/to/Sweeps.json",
-	"MeasurementLibraryFile": "/my/path/to/Measurements.json"
+	"AWGDir": "./",
+	"ChannelLibraryFile": "ChannelParams.json",
+	"InstrumentLibraryFile": "Instruments.json",
+	"SweepLibraryFile": "Sweeps.json",
+	"MeasurementLibraryFile": "Measurements.json"
 }
