@@ -86,10 +86,11 @@ AWGList = [APS, APS2, Tek5014, Tek7000]
 
 if __name__ == "__main__":
 
-    with enaml.imports():
-        from AWGViews import AWGView
-    
     awg = APS(label='BBNAPS1')
+
+    with enaml.imports():
+        from AWGsViews import AWGView
+    
     app = QtApplication()
     view = AWGView(awg=awg)
     view.show()
