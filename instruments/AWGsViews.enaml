@@ -109,7 +109,7 @@ enamldef AWGForm(GroupBox): myAWGForm:
 
 enamldef AWGView(Window): main:
 	attr awg
-	title = awg.name
+	title = awg.label
 	Container:
 		AWGForm:
 			awg := main.awg
