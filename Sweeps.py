@@ -51,7 +51,7 @@ class PointsSweep(Sweep):
         try:
             self.numPoints = int((self.stop - self.start)/floatbits.prevfloat(step)) + 1
         except ValueError, e:
-            print ("PointsSweep object issue: %s in %s" % (e,self.libFile))
+            print ("PointsSweep object issue: %s" % (e))
 
     def _get_step(self):
         return (self.stop - self.start)/max(1, self.numPoints-1)
