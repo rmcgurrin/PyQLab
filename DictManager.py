@@ -5,7 +5,7 @@ import enaml
 
 class DictManager(Atom):
 	"""
-	Control - Presenter for a dictionary of items. 
+	Control - Presenter for a dictionary of items.
 	i.e. give the ability to add/delete rename items
 	"""
 	itemDict = Typed(dict)
@@ -27,13 +27,20 @@ class DictManager(Atom):
 		dialogBox = AddItemDialog(parent, modelNames=[i.__name__ for i in self.possibleItems], objText='')
 		dialogBox.exec_()
 		if dialogBox.result:
-			self.itemDict[dialogBox.newLabel] = self.possibleItems[dialogBox.newModelNum](label=dialogBox.newLabel)
-			self.displayList.append(dialogBox.newLabel)
+			if dialogBox.newLabel not in self.itemDict.keys():
+				self.itemDict[dialogBox.newLabel] = self.possibleItems[dialogBox.newModelNum](label=dialogBox.newLabel)
+				self.displayList.append(dialogBox.newLabel)
+			else:
+				print("WARNING: Can't use duplicate label %s"%dialogBox.newLabel)
 
 	def remove_item(self, itemLabel):
-		self.itemDict.pop(itemLabel)
-		#TODO: once ContainerDicts land see if we still need this
-		self.displayList.pop(self.displayList.index(itemLabel))
+		#check that the item exists before removing from the list
+		if itemLabel in self.itemDict.keys():
+			self.itemDict.pop(itemLabel)
+			#TODO: once ContainerDicts land see if we still need this
+			self.displayList.pop(self.displayList.index(itemLabel))
+		else:
+			print("WARNING: %s is not in the list"%itemLabel)
 
 	def name_changed(self, oldLabel, newLabel):
 		# Add copy of changing item
@@ -44,10 +51,11 @@ class DictManager(Atom):
 		self.displayList[idx] = newLabel
 
 		# remove old label from itemDict list
-		self.itemDict.pop(oldLabel)
+		if oldLabel in self.itemDict.keys():
+			self.itemDict.pop(oldLabel)
 
 		# update label to new label list
-		self.itemDict[newLabel].label = newLabel	
+		self.itemDict[newLabel].label = newLabel
 
 		if self.onChangeDelegate:
 			self.onChangeDelegate(oldLabel, newLabel)
@@ -58,7 +66,7 @@ class DictManager(Atom):
 	@observe('itemDict')
 	def update_display_list(self, change):
 		"""
-		Eventualy itemDict will be a ContainerDict and this will fire on all events. 
+		Eventualy itemDict will be a ContainerDict and this will fire on all events.
 		Will have to be more careful about whether it is a "create" event or "update"
 		"""
 		self.displayList = sorted([v.label for v in self.itemDict.values() if self.displayFilter(v)])
