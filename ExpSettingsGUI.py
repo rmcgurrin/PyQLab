@@ -52,7 +52,7 @@ class ExpSettings(Atom):
         if newDir != None:
             fname = newDir+'/'+os.path.basename(self.curFileName)
         else:
-            fname = self.libFile
+            fname = self.curFileName
 
         with open(fname, 'w') as FID:
             json.dump(self, FID, cls=JSONHelpers.ScripterEncoder, indent=2, sort_keys=True, CWMode=self.CWMode)
