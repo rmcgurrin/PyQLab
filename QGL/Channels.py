@@ -40,6 +40,7 @@ import FileWatcher
 import importlib
 
 from copy import deepcopy
+import os
 
 class Channel(Atom):
     '''
@@ -284,13 +285,22 @@ class ChannelLibrary(Atom):
                 self.connectivityG.add_edge(chan.source, chan.target)
                 self.connectivityG[chan.source][chan.target]['channel'] = chan
 
-    def write_to_file(self):
+    def write_to_file(self,newDir=None):
         import JSONHelpers
         if self.libFile:
             #Pause the file watcher to stop cicular updating insanity
             if self.fileWatcher:
                 self.fileWatcher.pause()
-            with open(self.libFile, 'w') as FID:
+            
+            if newDir != None:
+                print(newDir)
+                fname = str(newDir)+'/'+os.path.basename(self.libFile)
+                print(fname)
+            else:
+                fname = self.libFile
+
+            with open(fname, 'w') as FID:
+                print('HELLO')
                 json.dump(self, FID, cls=JSONHelpers.LibraryEncoder, indent=2, sort_keys=True)
             if self.fileWatcher:
                 self.fileWatcher.resume()

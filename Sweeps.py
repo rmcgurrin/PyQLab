@@ -15,6 +15,7 @@ from DictManager import DictManager
 import numpy as np
 import json
 import floatbits
+import os
 
 class Sweep(Atom):
     label = Str()
@@ -147,10 +148,15 @@ class SweepLibrary(Atom):
     def _get_sweepList(self):
         return [sweep.label for sweep in self.sweepDict.values() if sweep.enabled]
 
-    def write_to_file(self):
+    def write_to_file(self,newDir=None):
         import JSONHelpers
         if self.libFile:
-            with open(self.libFile, 'w') as FID:
+            if newDir != None:
+                fname = str(newDir)+'/'+os.path.basename(self.libFile)
+            else:
+                fname = self.libFile
+
+            with open(fname, 'w') as FID:
                 json.dump(self, FID, cls=JSONHelpers.LibraryEncoder, indent=2, sort_keys=True)
 
     def load_from_library(self):

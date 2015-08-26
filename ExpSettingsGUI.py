@@ -18,6 +18,7 @@ import ExpSettingsVal
 class ExpSettings(Atom):
 
     sweeps = Typed(Sweeps.SweepLibrary)
+    print("DUDE")
     instruments = Typed(InstrumentLibrary)
     measurements = Typed(MeasFilters.MeasFilterLibrary)
     channels = Typed(QGL.Channels.ChannelLibrary)
@@ -46,12 +47,17 @@ class ExpSettings(Atom):
         import JSONHelpers
         pass
 
-    def write_to_file(self):
+    def write_to_file(self,newDir=None):
         import JSONHelpers
-        with open(self.curFileName,'w') as FID:
+        if newDir != None:
+            fname = newDir+'/'+os.path.basename(self.curFileName)
+        else:
+            fname = self.libFile
+
+        with open(fname, 'w') as FID:
             json.dump(self, FID, cls=JSONHelpers.ScripterEncoder, indent=2, sort_keys=True, CWMode=self.CWMode)
 
-    def write_libraries(self):
+    def write_libraries(self,newDir=None):
         """Write all the libraries to their files.
 
         """
@@ -63,11 +69,11 @@ class ExpSettings(Atom):
                 return False
         elif not self.validate:
             print "JSON Files validation disabled"
-            
-        self.channels.write_to_file()
-        self.instruments.write_to_file()
-        self.measurements.write_to_file()
-        self.sweeps.write_to_file()
+        print(newDir)
+        self.channels.write_to_file(newDir=newDir)
+        self.instruments.write_to_file(newDir=newDir)
+        self.measurements.write_to_file(newDir=newDir)
+        self.sweeps.write_to_file(newDir=newDir)
 
         return True
 
@@ -109,6 +115,10 @@ class ExpSettings(Atom):
 
 if __name__ == '__main__':
     import Libraries
+    
+    print('BABE',config.sweepLibFile)
+    config.sweepLibFile = 'FARTS'
+    print('BABE',config.sweepLibFile)
 
     from ExpSettingsGUI import ExpSettings
     expSettings = ExpSettings(sweeps=Libraries.sweepLib,

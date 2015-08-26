@@ -8,6 +8,7 @@ from enaml.qt.qt_application import QtApplication
 
 from DictManager import DictManager
 import json
+import os
 
 class MeasFilter(Atom):
     label = Str()
@@ -120,11 +121,17 @@ class MeasFilterLibrary(Atom):
     def __getitem__(self, filterName):
         return self.filterDict[filterName]
 
-    def write_to_file(self):
+    def write_to_file(self,newDir=None):
         #Move import here to avoid circular import
         import JSONHelpers
         if self.libFile:
-            with open(self.libFile,'w') as FID:
+            
+            if newDir != None:
+                fname = str(newDir)+'/'+os.path.basename(self.libFile)
+            else:
+                fname = self.libFile
+
+            with open(fname, 'w') as FID:
                 json.dump(self, FID, cls=JSONHelpers.LibraryEncoder, indent=2, sort_keys=True)
 
     def load_from_library(self):
