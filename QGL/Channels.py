@@ -41,6 +41,7 @@ import importlib
 
 from copy import deepcopy
 import os
+import time
 
 class Channel(Atom):
     '''
@@ -285,23 +286,20 @@ class ChannelLibrary(Atom):
                 self.connectivityG.add_edge(chan.source, chan.target)
                 self.connectivityG[chan.source][chan.target]['channel'] = chan
 
-    def write_to_file(self,newDir=None):
+    def write_to_file(self):
         import JSONHelpers
         if self.libFile:
             #Pause the file watcher to stop cicular updating insanity
             if self.fileWatcher:
                 self.fileWatcher.pause()
             
-            if newDir != None:
-                print(newDir)
-                fname = str(newDir)+'/'+os.path.basename(self.libFile)
-                print(fname)
-            else:
-                fname = self.libFile
-
-            with open(fname, 'w') as FID:
-                print('HELLO')
+            with open(self.libFile, 'w') as FID:
                 json.dump(self, FID, cls=JSONHelpers.LibraryEncoder, indent=2, sort_keys=True)
+            
+            #delay here to allow the OS to generate the file modified event before
+            #resuming the file watcher, otherwise you will have a race condition
+            #causing multiple file writes
+            time.sleep(.1)
             if self.fileWatcher:
                 self.fileWatcher.resume()
 
@@ -345,8 +343,8 @@ class ChannelLibrary(Atom):
         Helps avoid both stale references from replacing whole channel objects (as in load_from_library)
         and the overhead of recreating everything.
         """
-
         if self.libFile:
+            
             with open(self.libFile, 'r') as FID:
                 try:
                     allParams = json.load(FID)['channelDict']
@@ -374,6 +372,7 @@ class ChannelLibrary(Atom):
                         del self.channelDict[chName]
 
                 self.build_connectivity_graph()
+                
 
     def update_from_json(self,chName, chParams):
         # ignored or specially handled parameters

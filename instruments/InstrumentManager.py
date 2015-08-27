@@ -13,6 +13,8 @@ from DictManager import DictManager
 
 import Digitizers, Analysers, DCSources, Attenuators
 import os
+import time
+
 
 newOtherInstrs = [Digitizers.AlazarATS9870,
     Digitizers.X6,
@@ -57,24 +59,21 @@ class InstrumentLibrary(Atom):
     def __getitem__(self, instrName):
         return self.instrDict[instrName]
 
-    def write_to_file(self,newDir=None):
+    def write_to_file(self):
         #Move import here to avoid circular import
         import JSONHelpers
         if self.libFile:
             #Pause the file watcher to stop circular updating insanity
             if self.fileWatcher:
                 self.fileWatcher.pause()
-            
-            if newDir != None:
-                print(newDir)
-                fname = str(newDir)+'/'+os.path.basename(self.libFile)
-                print(fname)
-            else:
-                fname = self.libFile
-                
 
-            with open(fname, 'w') as FID:
+            with open(self.libFile, 'w') as FID:
                 json.dump(self, FID, cls=JSONHelpers.LibraryEncoder, indent=2, sort_keys=True)
+            
+            #delay here to allow the OS to generate the file modified event before
+            #resuming the file watcher, otherwise you will have a race condition
+            #causing multiple file writes
+            time.sleep(.1)
             if self.fileWatcher:
                 self.fileWatcher.resume()
 

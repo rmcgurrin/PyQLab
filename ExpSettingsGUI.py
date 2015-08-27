@@ -14,11 +14,11 @@ import json
 import os
 import config
 import ExpSettingsVal
+import shutil
 
 class ExpSettings(Atom):
 
     sweeps = Typed(Sweeps.SweepLibrary)
-    print("DUDE")
     instruments = Typed(InstrumentLibrary)
     measurements = Typed(MeasFilters.MeasFilterLibrary)
     channels = Typed(QGL.Channels.ChannelLibrary)
@@ -57,7 +57,7 @@ class ExpSettings(Atom):
         with open(fname, 'w') as FID:
             json.dump(self, FID, cls=JSONHelpers.ScripterEncoder, indent=2, sort_keys=True, CWMode=self.CWMode)
 
-    def write_libraries(self,newDir=None):
+    def write_libraries(self):
         """Write all the libraries to their files.
 
         """
@@ -70,12 +70,45 @@ class ExpSettings(Atom):
         elif not self.validate:
             print "JSON Files validation disabled"
         print(newDir)
-        self.channels.write_to_file(newDir=newDir)
-        self.instruments.write_to_file(newDir=newDir)
-        self.measurements.write_to_file(newDir=newDir)
-        self.sweeps.write_to_file(newDir=newDir)
+        self.channels.write_to_file()
+        self.instruments.write_to_file()
+        self.measurements.write_to_file()
+        self.sweeps.write_to_file()
 
         return True
+        
+    def save_config(self,path):
+        
+        try:
+            shutil.copy(self.channels.libFile,path)
+            shutil.copy(self.instruments.libFile,path)
+            shutil.copy(self.measurements.libFile,path)
+            shutil.copy(self.sweeps.libFile,path)
+            return True
+        except:
+            return False
+            
+    def load_config(self,path):
+        
+        try:
+            shutil.copy(path+'/'+self.channels.libFile,self.channels.libFile)
+            shutil.copy(path+'/'+self.instruments.libFile,self.instruments.libFile)
+            shutil.copy(path+'/'+self.measurements.libFile,self.measurements.libFile)
+            shutil.copy(path+'/'+self.sweeps.libFile,self.sweeps.libFile)
+            return True
+            
+        except:
+            return False
+            
+        #channels and instruments use update_from_file because they are using the
+        #file watching capability to share data with other processes accessing
+        #their json files
+        self.channels.update_from_file()
+        self.instruments.update_from_file()
+        
+        self.measurements.load_from_library()
+        self.sweeps.load_from_library()
+        
 
     def apply_quickpick(self, name):
         try:
@@ -116,10 +149,6 @@ class ExpSettings(Atom):
 if __name__ == '__main__':
     import Libraries
     
-    print('BABE',config.sweepLibFile)
-    config.sweepLibFile = 'FARTS'
-    print('BABE',config.sweepLibFile)
-
     from ExpSettingsGUI import ExpSettings
     expSettings = ExpSettings(sweeps=Libraries.sweepLib,
                               instruments=Libraries.instrumentLib,
