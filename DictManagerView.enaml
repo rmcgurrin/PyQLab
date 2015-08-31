@@ -39,6 +39,10 @@ enamldef DictManagerView(Container): dictView:
 		initialized :: 
 			itemList.item_changed.connect(dictManager.name_changed)
 			itemList.enable_changed.connect(dictManager.update_enable)
+			itemList.get_enable.connect(dictManager.get_enable)
+			itemList.timer.timeout.connect(itemList.on_timeout)
+			itemList.timer.start(1000)
+
 
 	PushButton: addButton:
 		text = "Add"

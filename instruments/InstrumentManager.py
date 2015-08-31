@@ -86,6 +86,7 @@ class InstrumentLibrary(Atom):
                     tmpLib = json.load(FID, cls=JSONHelpers.LibraryDecoder)
                     if isinstance(tmpLib, InstrumentLibrary):
                         self.instrDict.update(tmpLib.instrDict)
+
                         # grab library version
                         self.version = tmpLib.version
             except IOError:
@@ -114,6 +115,9 @@ class InstrumentLibrary(Atom):
                     # update
                     if instrName in self.instrDict:
                         self.instrDict[instrName].update_from_jsondict(instrParams)
+                        if 'JPApump' in instrName:
+                            print('yo',self.instrDict[instrName].enabled)
+                            self.sources.update_enable(instrName,self.instrDict[instrName].enabled)
                     else:
                         # load class from name and update from json
                         className = instrParams['x__class__']
@@ -127,6 +131,7 @@ class InstrumentLibrary(Atom):
                 # delete removed items
                 for instrName in self.instrDict.keys():
                     if instrName not in allParams:
+                        print('Deleting: ',instrName)
                         del self.instrDict[instrName]
 
     def json_encode(self, matlabCompatible=False):

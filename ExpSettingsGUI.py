@@ -69,7 +69,6 @@ class ExpSettings(Atom):
                 return False
         elif not self.validate:
             print "JSON Files validation disabled"
-        print(newDir)
         self.channels.write_to_file()
         self.instruments.write_to_file()
         self.measurements.write_to_file()
@@ -91,23 +90,24 @@ class ExpSettings(Atom):
     def load_config(self,path):
         
         try:
-            shutil.copy(path+'/'+self.channels.libFile,self.channels.libFile)
-            shutil.copy(path+'/'+self.instruments.libFile,self.instruments.libFile)
-            shutil.copy(path+'/'+self.measurements.libFile,self.measurements.libFile)
-            shutil.copy(path+'/'+self.sweeps.libFile,self.sweeps.libFile)
-            return True
-            
+            shutil.copy(path+ os.sep + os.path.basename(self.channels.libFile),self.channels.libFile)
+            shutil.copy(path+ os.sep + os.path.basename(self.instruments.libFile),self.instruments.libFile)
+            shutil.copy(path+ os.sep + os.path.basename(self.measurements.libFile),self.measurements.libFile)
+            shutil.copy(path+ os.sep + os.path.basename(self.sweeps.libFile),self.sweeps.libFile)
         except:
+            print("ERROR: Could not load one of the files")
             return False
             
         #channels and instruments use update_from_file because they are using the
         #file watching capability to share data with other processes accessing
         #their json files
-        self.channels.update_from_file()
-        self.instruments.update_from_file()
+        #self.channels.load_from_library()
+        #self.instruments.update_from_library()
         
         self.measurements.load_from_library()
         self.sweeps.load_from_library()
+        
+        return True
         
 
     def apply_quickpick(self, name):

@@ -1,6 +1,7 @@
 from atom.api import (Atom, List, ContainerList, Dict, observe, Callable, Typed, Unicode)
 
 import enaml
+from enaml.qt.QtCore import Qt, QTimer
 
 
 class DictManager(Atom):
@@ -64,7 +65,12 @@ class DictManager(Atom):
 
     def update_enable(self, itemLabel, checkState):
         self.itemDict[itemLabel].enabled = checkState
+        
+    def get_enable(self, itemWidget):
+        itemWidget.setCheckState(Qt.Checked if self.itemDict[itemWidget.text()].enabled else Qt.Unchecked)
 
+
+    
     @observe('itemDict')
     def update_display_list(self, change):
         """

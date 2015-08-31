@@ -9,7 +9,7 @@ from atom.api import (Bool, List, ContainerList, observe, set_default, Unicode, 
 from enaml.widgets.api import RawWidget
 from enaml.core.declarative import d_
 from enaml.qt.QtGui import QListWidget, QListWidgetItem, QAbstractItemView, QColor
-from enaml.qt.QtCore import Qt
+from enaml.qt.QtCore import Qt, QTimer
 
 class QtListStrWidget(RawWidget):
     """ A Qt4 implementation of an Enaml ProxyListStrView.
@@ -43,6 +43,9 @@ class QtListStrWidget(RawWidget):
 
     item_changed = Signal()
     enable_changed = Signal()
+    get_enable = Signal()
+    
+    timer = QTimer()
 
     
     #--------------------------------------------------------------------------
@@ -67,9 +70,9 @@ class QtListStrWidget(RawWidget):
 
         widget.itemSelectionChanged.connect(self.on_selection)
         widget.itemChanged.connect(self.on_edit)
+        
 
         return widget
-
 
     def add_item(self, widget, item, checked=True):
         itemWidget = QListWidgetItem(item)
@@ -83,6 +86,15 @@ class QtListStrWidget(RawWidget):
     #--------------------------------------------------------------------------
     # Signal Handlers
     #--------------------------------------------------------------------------
+    def on_timeout(self):
+        widget = self.get_widget()
+        count = widget.count()
+        for idx in range(0,count):
+            itemWidget = widget.item(idx)
+            self.get_enable(itemWidget)
+            if "pump" in itemWidget.text():
+                print(itemWidget.text())
+                
     def on_selection(self):
         """ 
         The signal handler for the index changed signal.
@@ -115,6 +127,7 @@ class QtListStrWidget(RawWidget):
     def set_items(self, items, widget = None):
         """
         """
+
         widget = self.get_widget()
         count = widget.count()
         nitems = len(items)
