@@ -42,6 +42,7 @@ enamldef DictManagerView(Container): dictView:
 			itemList.get_enable.connect(dictManager.get_enable)
 			itemList.timer.timeout.connect(itemList.on_timeout)
 			itemList.timer.start(1000)
+			dictManager.foo.connect(itemList._update_proxy)
 
 
 	PushButton: addButton:

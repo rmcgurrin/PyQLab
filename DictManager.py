@@ -1,4 +1,4 @@
-from atom.api import (Atom, List, ContainerList, Dict, observe, Callable, Typed, Unicode)
+from atom.api import (Atom, List, ContainerList, Dict, observe, Callable, Typed, Unicode,Signal)
 
 import enaml
 from enaml.qt.QtCore import Qt, QTimer
@@ -14,6 +14,7 @@ class DictManager(Atom):
     possibleItems = List() # a list of classes that can possibly be added to this list
     displayList = ContainerList()
     onChangeDelegate = Callable()
+    foo=Signal()
 
     def __init__(self, itemDict={}, displayFilter=lambda x: True, **kwargs):
         self.displayFilter = displayFilter
@@ -74,6 +75,8 @@ class DictManager(Atom):
         count = widget.count()
         for idx in range(0,count):
             itemWidget = widget.item(idx)
+            #print(itemWidget.text(),itemWidget.text() in self.displayList)
+            
             #itemWidget.setCheckState(Qt.Checked if self.itemDict[itemWidget.text()].enabled else Qt.Unchecked)
 
 
@@ -90,3 +93,4 @@ class DictManager(Atom):
         """
         print("UPDATE DISPLAY LIST")
         self.displayList = sorted([v.label for v in self.itemDict.values() if self.displayFilter(v)])
+        #self.foo(None)

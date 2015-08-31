@@ -170,6 +170,10 @@ class QtListStrWidget(RawWidget):
         # The superclass handler implementation is sufficient.
         widget =self.get_widget()
         print("WIDGET UPDATE PROXY: ",change)
+        
+        if change==None:
+            return
+        
         if widget != None:
             if change["name"] == "items":
                 if change["type"] == "update":

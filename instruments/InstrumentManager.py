@@ -1,4 +1,4 @@
-from atom.api import (Atom, Str, List, Dict, Property, Typed, Unicode, Coerced, Int)
+from atom.api import (Atom, Str, List, Dict, Property, Typed, Unicode, Coerced, Int, observe, Bool)
 import json, enaml
 from enaml.qt.qt_application import QtApplication
 
@@ -33,6 +33,7 @@ class InstrumentLibrary(Atom):
     sources = Typed(DictManager)
     others = Typed(DictManager)
     version = Int(0)
+    foobar = Bool(True)
 
     fileWatcher = Typed(FileWatcher.LibraryFileWatcher)
 
@@ -133,7 +134,15 @@ class InstrumentLibrary(Atom):
                     if instrName not in allParams:
                         print('Deleting: ',instrName)
                         del self.instrDict[instrName]
+                        if instrName not in self.sources.itemDict:
+                            print(instrName," has been removed")
+                            foobar=False
 
+    @observe('self.foobar')
+    def _foo2(self,change):
+        print("OVSERVED!: ",change)
+    
+    
     def json_encode(self, matlabCompatible=False):
         #When serializing for matlab return only enabled instruments, otherwise all
         if matlabCompatible:
