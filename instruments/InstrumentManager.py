@@ -116,7 +116,7 @@ class InstrumentLibrary(Atom):
                     if instrName in self.instrDict:
                         self.instrDict[instrName].update_from_jsondict(instrParams)
                         if 'JPApump' in instrName:
-                            print('yo',self.instrDict[instrName].enabled)
+                            print('UPDATE FROM FILE: ',instrName,self.instrDict[instrName].enabled)
                             self.sources.update_enable(instrName,self.instrDict[instrName].enabled)
                     else:
                         # load class from name and update from json

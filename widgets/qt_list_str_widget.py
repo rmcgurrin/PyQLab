@@ -75,6 +75,7 @@ class QtListStrWidget(RawWidget):
         return widget
 
     def add_item(self, widget, item, checked=True):
+        print("WIDGET ADD ITEM: ",item)
         itemWidget = QListWidgetItem(item)
         if self.checkable:
             itemWidget.setCheckState(Qt.Checked if checked else Qt.Unchecked)
@@ -88,12 +89,15 @@ class QtListStrWidget(RawWidget):
     #--------------------------------------------------------------------------
     def on_timeout(self):
         widget = self.get_widget()
-        count = widget.count()
+        self.get_enable(widget)
+        
+        '''
         for idx in range(0,count):
             itemWidget = widget.item(idx)
             self.get_enable(itemWidget)
             if "pump" in itemWidget.text():
                 print(itemWidget.text())
+        '''
                 
     def on_selection(self):
         """ 
@@ -107,6 +111,7 @@ class QtListStrWidget(RawWidget):
         """ 
         The signal handler for the item changed signal.
         """
+        print("WIDGET EDIT ITEM: ",item.text())
         widget = self.get_widget()
         itemRow = widget.indexFromItem(item).row()
         oldLabel = self.items[itemRow]
@@ -127,7 +132,7 @@ class QtListStrWidget(RawWidget):
     def set_items(self, items, widget = None):
         """
         """
-
+        print("WIDGET SET ITEMS: ",items)
         widget = self.get_widget()
         count = widget.count()
         nitems = len(items)
@@ -164,6 +169,7 @@ class QtListStrWidget(RawWidget):
         """
         # The superclass handler implementation is sufficient.
         widget =self.get_widget()
+        print("WIDGET UPDATE PROXY: ",change)
         if widget != None:
             if change["name"] == "items":
                 if change["type"] == "update":

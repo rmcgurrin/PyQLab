@@ -23,11 +23,13 @@ class DictManager(Atom):
         """
         Create a new item dialog window and handle the result
         """
+        print("ADD ITEM: ",parent)
         with enaml.imports():
             from widgets.dialogs import AddItemDialog
         dialogBox = AddItemDialog(parent, modelNames=[i.__name__ for i in self.possibleItems], objText='')
         dialogBox.exec_()
         if dialogBox.result:
+            print("ADD ITEM: ",dialogBox.newLabel)
             if dialogBox.newLabel not in self.itemDict.keys():
                 self.itemDict[dialogBox.newLabel] = self.possibleItems[dialogBox.newModelNum](label=dialogBox.newLabel)
                 self.displayList.append(dialogBox.newLabel)
@@ -35,6 +37,7 @@ class DictManager(Atom):
                 print("WARNING: Can't use duplicate label %s"%dialogBox.newLabel)
 
     def remove_item(self, itemLabel):
+        print("REMOVE ITEM: ",itemLabel)
         #check that the item exists before removing from the list
         if itemLabel in self.itemDict.keys():
             self.itemDict.pop(itemLabel)
@@ -44,6 +47,7 @@ class DictManager(Atom):
             print("WARNING: %s is not in the list"%itemLabel)
 
     def name_changed(self, oldLabel, newLabel):
+        print("NAME CHANGED")
         # Add copy of changing item
         self.itemDict[newLabel] = self.itemDict[oldLabel]
 
@@ -66,8 +70,15 @@ class DictManager(Atom):
     def update_enable(self, itemLabel, checkState):
         self.itemDict[itemLabel].enabled = checkState
         
-    def get_enable(self, itemWidget):
-        itemWidget.setCheckState(Qt.Checked if self.itemDict[itemWidget.text()].enabled else Qt.Unchecked)
+    def get_enable(self, widget):
+        count = widget.count()
+        for idx in range(0,count):
+            itemWidget = widget.item(idx)
+            #itemWidget.setCheckState(Qt.Checked if self.itemDict[itemWidget.text()].enabled else Qt.Unchecked)
+
+
+        
+        #itemWidget.setCheckState(Qt.Checked if self.itemDict[itemWidget.text()].enabled else Qt.Unchecked)
 
 
     
@@ -77,4 +88,5 @@ class DictManager(Atom):
         Eventualy itemDict will be a ContainerDict and this will fire on all events.
         Will have to be more careful about whether it is a "create" event or "update"
         """
+        print("UPDATE DISPLAY LIST")
         self.displayList = sorted([v.label for v in self.itemDict.values() if self.displayFilter(v)])
