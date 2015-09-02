@@ -9,7 +9,7 @@ from atom.api import (Bool, List, ContainerList, observe, set_default, Unicode, 
 from enaml.widgets.api import RawWidget
 from enaml.core.declarative import d_
 from enaml.qt.QtGui import QListWidget, QListWidgetItem, QAbstractItemView, QColor
-from enaml.qt.QtCore import Qt, QTimer
+from enaml.qt.QtCore import Qt
 
 class QtListStrWidget(RawWidget):
     """ A Qt4 implementation of an Enaml ProxyListStrView.
@@ -72,7 +72,6 @@ class QtListStrWidget(RawWidget):
         return widget
 
     def add_item(self, widget, item, checked=True):
-        print("WIDGET ADD ITEM: ",item)
         itemWidget = QListWidgetItem(item)
         if self.checkable:
             itemWidget.setCheckState(Qt.Checked if checked else Qt.Unchecked)
@@ -85,12 +84,12 @@ class QtListStrWidget(RawWidget):
     # Signal Handlers
     #--------------------------------------------------------------------------
     def on_libfile_change(self,itemDict):
-        print("SOMETHING CHANGED IN THE DictManager")  
+        print("UPDATING WIDGET")
         widget = self.get_widget()
         count = widget.count()
         '''
         Only need to handle the checked state change here
-        Adding/Removing items is handled by the update proxy which Observers
+        Adding/Removing items is handled by the update proxy which observes
         changes to the display list       
         '''
         for idx in range(0,count):
@@ -110,7 +109,6 @@ class QtListStrWidget(RawWidget):
         """ 
         The signal handler for the item changed signal.
         """
-        print("WIDGET EDIT ITEM: ",item.text())
         widget = self.get_widget()
         itemRow = widget.indexFromItem(item).row()
         oldLabel = self.items[itemRow]
@@ -131,7 +129,6 @@ class QtListStrWidget(RawWidget):
     def set_items(self, items, widget = None):
         """
         """
-        print("WIDGET SET ITEMS: ",items)
         widget = self.get_widget()
         count = widget.count()
         nitems = len(items)
@@ -166,14 +163,8 @@ class QtListStrWidget(RawWidget):
         """ An observer which sends state change to the proxy.
 
         """
-        print("OBSERVING ITEMS")
         # The superclass handler implementation is sufficient.
-        widget =self.get_widget()
-        print("WIDGET UPDATE PROXY: ",change)
-        
-        if change==None:
-            return
-        
+        widget =self.get_widget()        
         if widget != None:
             if change["name"] == "items":
                 if change["type"] == "update":

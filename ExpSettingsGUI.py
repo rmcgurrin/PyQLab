@@ -47,14 +47,9 @@ class ExpSettings(Atom):
         import JSONHelpers
         pass
 
-    def write_to_file(self,newDir=None):
+    def write_to_file(self):
         import JSONHelpers
-        if newDir != None:
-            fname = newDir+'/'+os.path.basename(self.curFileName)
-        else:
-            fname = self.curFileName
-
-        with open(fname, 'w') as FID:
+        with open(self.curFileName, 'w') as FID:
             json.dump(self, FID, cls=JSONHelpers.ScripterEncoder, indent=2, sort_keys=True, CWMode=self.CWMode)
 
     def write_libraries(self):
@@ -103,10 +98,7 @@ class ExpSettings(Atom):
         #their json files
         #self.channels.load_from_library()
         #self.instruments.update_from_library()
-        
-        self.measurements.load_from_library()
-        self.sweeps.load_from_library()
-        
+                
         return True
         
 

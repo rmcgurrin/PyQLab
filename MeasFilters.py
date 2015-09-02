@@ -9,6 +9,9 @@ from enaml.qt.qt_application import QtApplication
 from DictManager import DictManager
 import json
 import os
+import FileWatcher
+import sys
+import time
 
 class MeasFilter(Atom):
     label = Str()
@@ -34,6 +37,12 @@ class MeasFilter(Atom):
             jsonDict['x__class__'] = self.__class__.__name__
             jsonDict['x__module__'] = self.__class__.__module__
         return jsonDict
+	
+    def update_from_jsondict(self, jsonDict):
+		jsonDict.pop('x__class__', None)
+		jsonDict.pop('x__module__', None)
+		for label,value in jsonDict.items():
+			setattr(self, label, value)
 
 class RawStream(MeasFilter):
     saveRecords = Bool(False).tag(desc='Whether to save the single-shot records to file.')
@@ -111,11 +120,14 @@ class MeasFilterLibrary(Atom):
     libFile = Str().tag(transient=True)
     filterManager = Typed(DictManager)
     version = Int(0)
+    fileWatcher = Typed(FileWatcher.LibraryFileWatcher)
 
     def __init__(self, **kwargs):
         super(MeasFilterLibrary, self).__init__(**kwargs)
         self.load_from_library()
         self.filterManager = DictManager(itemDict=self.filterDict, possibleItems=measFilterList)
+        if self.libFile:
+            self.fileWatcher = FileWatcher.LibraryFileWatcher(self.libFile, self.update_from_file)
 
     #Overload [] to allow direct pulling of measurement filter info
     def __getitem__(self, filterName):
@@ -125,16 +137,21 @@ class MeasFilterLibrary(Atom):
         #Move import here to avoid circular import
         import JSONHelpers
         if self.libFile:
-            
-            if newDir != None:
-                fname = str(newDir)+'/'+os.path.basename(self.libFile)
-            else:
-                fname = self.libFile
-
-            with open(fname, 'w') as FID:
+            #Pause the file watcher to stop circular updating insanity
+            if self.fileWatcher:
+                self.fileWatcher.pause()
+        
+            with open(self.libFile, 'w') as FID:
                 json.dump(self, FID, cls=JSONHelpers.LibraryEncoder, indent=2, sort_keys=True)
+                
+            #delay here to allow the OS to generate the file modified event before
+            #resuming the file watcher, otherwise you will have a race condition
+            #causing multiple file writes
+            time.sleep(.1)
+            if self.fileWatcher:
+                self.fileWatcher.resume()
 
-    def load_from_library(self):
+    def load_from_library(self,update=False):
         import JSONHelpers
         if self.libFile:
             try:
@@ -151,9 +168,60 @@ class MeasFilterLibrary(Atom):
                         self.filterDict.update(tmpLib.filterDict)
                         # grab library version
                         self.version = tmpLib.version
+                    
+                    if update==True:
+                        self.filterManager.update_display_list_from_file(itemDict=self.filterDict)
+
+                    
             except IOError:
                 print("No measurement library found.")
 
+    def update_from_file(self):
+        """
+        Only update relevant parameters
+        Helps avoid stale references by replacing whole channel objects as in load_from_library
+        and the overhead of recreating everything.
+        """
+        print("UPDATING FROM MEAS")
+
+        if self.libFile:
+            with open(self.libFile, 'r') as FID:
+                try:
+                    allParams = json.load(FID)['filterDict']
+                except ValueError:
+                    print('Failed to update instrument library from file.  Probably just half-written.')
+                    return
+                # update and add new items
+                for filterName, filterParams in allParams.items():
+                    # Re-encode the strings as ascii (this should go away in Python 3)
+                    filterParams = {k.encode('ascii'):v for k,v in filterParams.items()}
+                    # update
+                    if filterName in self.filterDict:
+                        self.filterDict[filterName].update_from_jsondict(filterParams)
+                    else:
+                        # load class from name and update from json
+                        className = filterParams['x__class__']
+                        moduleName = filterParams['x__module__']
+                        print(className,moduleName)
+
+                        #mod = importlib.import_module(moduleName)
+                        cls = getattr(sys.modules[moduleName], className)
+                        print(cls)
+                        self.filterDict[filterName]  = cls()
+                        self.filterDict[filterName].update_from_jsondict(filterParams)
+
+                # delete removed items
+                for filterName in self.filterDict.keys():
+                    if filterName not in allParams:
+                        del self.filterDict[filterName]
+                
+                
+                '''
+                Update the display lists and signal that the list widget needs
+                to be updated
+                '''
+                self.filterManager.update_display_list_from_file(itemDict=self.filterDict)
+                
     def json_encode(self, matlabCompatible=False):
         if matlabCompatible:
             return {label:filt for label,filt in self.filterDict.items() if filt.enabled}

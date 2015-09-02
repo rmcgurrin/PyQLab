@@ -124,17 +124,11 @@ class InstrumentLibrary(Atom):
                         cls = getattr(mod, className)
                         self.instrDict[instrName]  = cls()
                         self.instrDict[instrName].update_from_jsondict(instrParams)
-                        print("NEW! ",instrName)
-                        print(self.instrDict)
 
                 # delete removed items
                 for instrName in self.instrDict.keys():
                     if instrName not in allParams:
-                        print('Deleting: ',instrName)
                         del self.instrDict[instrName]
-                        print(self.instrDict.keys())
-                        if instrName not in self.sources.itemDict:
-                            print(instrName," has been removed")
                 
                 
                 '''

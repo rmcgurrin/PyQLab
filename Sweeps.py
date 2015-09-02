@@ -15,7 +15,9 @@ from DictManager import DictManager
 import numpy as np
 import json
 import floatbits
-import os
+import FileWatcher
+import time
+
 
 class Sweep(Atom):
     label = Str()
@@ -33,6 +35,12 @@ class Sweep(Atom):
             jsonDict['x__class__'] = self.__class__.__name__
             jsonDict['x__module__'] = self.__class__.__module__
         return jsonDict
+        
+    def update_from_jsondict(self, jsonDict):
+		jsonDict.pop('x__class__', None)
+		jsonDict.pop('x__module__', None)
+		for label,value in jsonDict.items():
+			setattr(self, label, value)
 
 class PointsSweep(Sweep):
     """
@@ -134,12 +142,15 @@ class SweepLibrary(Atom):
     sweepManager = Typed(DictManager)
 
     libFile = Str()
+    fileWatcher = Typed(FileWatcher.LibraryFileWatcher)
 
     def __init__(self, **kwargs):
         super(SweepLibrary, self).__init__(**kwargs)
         self.load_from_library()
         self.sweepManager = DictManager(itemDict=self.sweepDict,
                                         possibleItems=newSweepClasses)
+        if self.libFile:
+            self.fileWatcher = FileWatcher.LibraryFileWatcher(self.libFile, self.update_from_file)
 
     #Overload [] to allow direct pulling of sweep info
     def __getitem__(self, sweepName):
@@ -148,16 +159,22 @@ class SweepLibrary(Atom):
     def _get_sweepList(self):
         return [sweep.label for sweep in self.sweepDict.values() if sweep.enabled]
 
-    def write_to_file(self,newDir=None):
+    def write_to_file(self):
         import JSONHelpers
         if self.libFile:
-            if newDir != None:
-                fname = str(newDir)+'/'+os.path.basename(self.libFile)
-            else:
-                fname = self.libFile
-
-            with open(fname, 'w') as FID:
+            #Pause the file watcher to stop circular updating insanity
+            if self.fileWatcher:
+                self.fileWatcher.pause()
+        
+            with open(self.libFile, 'w') as FID:
                 json.dump(self, FID, cls=JSONHelpers.LibraryEncoder, indent=2, sort_keys=True)
+                
+            #delay here to allow the OS to generate the file modified event before
+            #resuming the file watcher, otherwise you will have a race condition
+            #causing multiple file writes
+            time.sleep(.1)
+            if self.fileWatcher:
+                self.fileWatcher.resume()
 
     def load_from_library(self):
         import JSONHelpers
@@ -182,6 +199,51 @@ class SweepLibrary(Atom):
                         self.version = tmpLib.version
             except IOError:
                 print('No sweep library found.')
+                
+    def update_from_file(self):
+        """
+        Only update relevant parameters
+        Helps avoid stale references by replacing whole channel objects as in load_from_library
+        and the overhead of recreating everything.
+        """
+        print("UPDATING FROM SWEEPS")
+        if self.libFile:
+            with open(self.libFile, 'r') as FID:
+                try:
+                    allParams = json.load(FID)['sweepDict']
+                except ValueError:
+                    print('Failed to update instrument library from file.  Probably just half-written.')
+                    return
+                # update and add new items
+                for sweepName, sweepParams in allParams.items():
+                    # Re-encode the strings as ascii (this should go away in Python 3)
+                    sweepParams = {k.encode('ascii'):v for k,v in sweepParams.items()}
+                    # update
+                    if sweepName in self.sweepDict:
+                        self.sweepDict[sweepName].update_from_jsondict(sweepParams)
+                    else:
+                        # load class from name and update from json
+                        className = sweepParams['x__class__']
+                        moduleName = sweepParams['x__module__']
+                        print(className,moduleName)
+
+                        #mod = importlib.import_module(moduleName)
+                        cls = getattr(sys.modules[moduleName], className)
+                        print(cls)
+                        self.sweepDict[sweepName]  = cls()
+                        self.sweepDict[sweepName].update_from_jsondict(sweepParams)
+
+                # delete removed items
+                for sweepName in self.sweepDict.keys():
+                    if sweepName not in allParams:
+                        del self.sweepDict[sweepName]
+                
+                
+                '''
+                Update the display lists and signal that the list widget needs
+                to be updated
+                '''
+                self.sweepManager.update_display_list_from_file(itemDict=self.sweepDict)
 
     def json_encode(self, matlabCompatible=False):
             if matlabCompatible:

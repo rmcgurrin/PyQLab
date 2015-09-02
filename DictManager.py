@@ -8,7 +8,7 @@ class DictManager(Atom):
     Control - Presenter for a dictionary of items.
     i.e. give the ability to add/delete rename items
     """
-    itemDict = Dict()
+    itemDict = Typed(dict)
     displayFilter = Callable() # filter which items to display later
     possibleItems = List() # a list of classes that can possibly be added to this list
     displayList = ContainerList()
@@ -37,14 +37,12 @@ class DictManager(Atom):
 
     def remove_item(self, itemLabel):
         #check that the item exists before removing from the list
-        print("LEN BEFORE:",len(self.itemDict.keys()))
         if itemLabel in self.itemDict.keys():
             self.itemDict.pop(itemLabel)
             #TODO: once ContainerDicts land see if we still need this
             self.displayList.pop(self.displayList.index(itemLabel))
         else:
             print("WARNING: %s is not in the list"%itemLabel)
-        print("LEN AFTER:",len(self.itemDict.keys()))
 
     def name_changed(self, oldLabel, newLabel):
         # Add copy of changing item
@@ -67,11 +65,14 @@ class DictManager(Atom):
             self.onChangeDelegate(oldLabel, newLabel)
 
     def update_enable(self, itemLabel, checkState):
-        print("ENABLE CHANGED")
         self.itemDict[itemLabel].enabled = checkState
         
     def update_display_list_from_file(self,itemDict):
-        print('UPDATING DICT FROM FILE')
+        '''
+        Need to re-write the itemDict here because the observer won't catch changes
+        to the dictionary values
+        '''
+        print("UPDATING DICTIONARY MANAGER")
         self.itemDict = itemDict
         self.displayList = sorted([v.label for v in self.itemDict.values() if self.displayFilter(v)])
         self.updateWidget(itemDict)
@@ -82,8 +83,5 @@ class DictManager(Atom):
         Eventualy itemDict will be a ContainerDict and this will fire on all events.
         Will have to be more careful about whether it is a "create" event or "update"
         """
-        print('OBSERVING ITEMDICT ')
         self.displayList = sorted([v.label for v in self.itemDict.values() if self.displayFilter(v)])
-        #for label in self.displayList:
-        #    print(label,self.itemDict[label].enabled)
         
