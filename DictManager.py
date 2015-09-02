@@ -1,7 +1,6 @@
-from atom.api import (Atom, List, ContainerList, Dict, observe, Callable, Typed, Unicode,Signal)
+from atom.api import (Atom, List, ContainerList, Dict, observe, Callable, Typed, Unicode, Signal)
 
 import enaml
-from enaml.qt.QtCore import Qt, QTimer
 
 
 class DictManager(Atom):
@@ -9,12 +8,13 @@ class DictManager(Atom):
     Control - Presenter for a dictionary of items.
     i.e. give the ability to add/delete rename items
     """
-    itemDict = Typed(dict)
+    itemDict = Dict()
     displayFilter = Callable() # filter which items to display later
     possibleItems = List() # a list of classes that can possibly be added to this list
     displayList = ContainerList()
     onChangeDelegate = Callable()
-    foo=Signal()
+    
+    updateWidget = Signal()
 
     def __init__(self, itemDict={}, displayFilter=lambda x: True, **kwargs):
         self.displayFilter = displayFilter
@@ -24,13 +24,11 @@ class DictManager(Atom):
         """
         Create a new item dialog window and handle the result
         """
-        print("ADD ITEM: ",parent)
         with enaml.imports():
             from widgets.dialogs import AddItemDialog
         dialogBox = AddItemDialog(parent, modelNames=[i.__name__ for i in self.possibleItems], objText='')
         dialogBox.exec_()
         if dialogBox.result:
-            print("ADD ITEM: ",dialogBox.newLabel)
             if dialogBox.newLabel not in self.itemDict.keys():
                 self.itemDict[dialogBox.newLabel] = self.possibleItems[dialogBox.newModelNum](label=dialogBox.newLabel)
                 self.displayList.append(dialogBox.newLabel)
@@ -38,17 +36,17 @@ class DictManager(Atom):
                 print("WARNING: Can't use duplicate label %s"%dialogBox.newLabel)
 
     def remove_item(self, itemLabel):
-        print("REMOVE ITEM: ",itemLabel)
         #check that the item exists before removing from the list
+        print("LEN BEFORE:",len(self.itemDict.keys()))
         if itemLabel in self.itemDict.keys():
             self.itemDict.pop(itemLabel)
             #TODO: once ContainerDicts land see if we still need this
             self.displayList.pop(self.displayList.index(itemLabel))
         else:
             print("WARNING: %s is not in the list"%itemLabel)
+        print("LEN AFTER:",len(self.itemDict.keys()))
 
     def name_changed(self, oldLabel, newLabel):
-        print("NAME CHANGED")
         # Add copy of changing item
         self.itemDict[newLabel] = self.itemDict[oldLabel]
 
@@ -69,28 +67,23 @@ class DictManager(Atom):
             self.onChangeDelegate(oldLabel, newLabel)
 
     def update_enable(self, itemLabel, checkState):
+        print("ENABLE CHANGED")
         self.itemDict[itemLabel].enabled = checkState
         
-    def get_enable(self, widget):
-        count = widget.count()
-        for idx in range(0,count):
-            itemWidget = widget.item(idx)
-            #print(itemWidget.text(),itemWidget.text() in self.displayList)
-            
-            #itemWidget.setCheckState(Qt.Checked if self.itemDict[itemWidget.text()].enabled else Qt.Unchecked)
-
-
+    def update_display_list_from_file(self,itemDict):
+        print('UPDATING DICT FROM FILE')
+        self.itemDict = itemDict
+        self.displayList = sorted([v.label for v in self.itemDict.values() if self.displayFilter(v)])
+        self.updateWidget(itemDict)
         
-        #itemWidget.setCheckState(Qt.Checked if self.itemDict[itemWidget.text()].enabled else Qt.Unchecked)
-
-
-    
     @observe('itemDict')
-    def update_display_list(self, change):
+    def update_display_list(self,change):
         """
         Eventualy itemDict will be a ContainerDict and this will fire on all events.
         Will have to be more careful about whether it is a "create" event or "update"
         """
-        print("UPDATE DISPLAY LIST")
+        print('OBSERVING ITEMDICT ')
         self.displayList = sorted([v.label for v in self.itemDict.values() if self.displayFilter(v)])
-        #self.foo(None)
+        #for label in self.displayList:
+        #    print(label,self.itemDict[label].enabled)
+        

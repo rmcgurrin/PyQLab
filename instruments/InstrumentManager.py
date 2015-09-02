@@ -33,7 +33,6 @@ class InstrumentLibrary(Atom):
     sources = Typed(DictManager)
     others = Typed(DictManager)
     version = Int(0)
-    foobar = Bool(True)
 
     fileWatcher = Typed(FileWatcher.LibraryFileWatcher)
 
@@ -116,9 +115,6 @@ class InstrumentLibrary(Atom):
                     # update
                     if instrName in self.instrDict:
                         self.instrDict[instrName].update_from_jsondict(instrParams)
-                        if 'JPApump' in instrName:
-                            print('UPDATE FROM FILE: ',instrName,self.instrDict[instrName].enabled)
-                            self.sources.update_enable(instrName,self.instrDict[instrName].enabled)
                     else:
                         # load class from name and update from json
                         className = instrParams['x__class__']
@@ -128,20 +124,28 @@ class InstrumentLibrary(Atom):
                         cls = getattr(mod, className)
                         self.instrDict[instrName]  = cls()
                         self.instrDict[instrName].update_from_jsondict(instrParams)
+                        print("NEW! ",instrName)
+                        print(self.instrDict)
 
                 # delete removed items
                 for instrName in self.instrDict.keys():
                     if instrName not in allParams:
                         print('Deleting: ',instrName)
                         del self.instrDict[instrName]
+                        print(self.instrDict.keys())
                         if instrName not in self.sources.itemDict:
                             print(instrName," has been removed")
-                            foobar=False
-
-    @observe('self.foobar')
-    def _foo2(self,change):
-        print("OVSERVED!: ",change)
-    
+                
+                
+                '''
+                Update the display lists and signal that the list widget needs
+                to be updated
+                '''
+                self.sources.update_display_list_from_file(itemDict=self.instrDict)
+                self.AWGs.update_display_list_from_file(itemDict=self.instrDict)
+                self.others.update_display_list_from_file(itemDict=self.instrDict)
+                
+                            
     
     def json_encode(self, matlabCompatible=False):
         #When serializing for matlab return only enabled instruments, otherwise all

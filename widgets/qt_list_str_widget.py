@@ -43,10 +43,7 @@ class QtListStrWidget(RawWidget):
 
     item_changed = Signal()
     enable_changed = Signal()
-    get_enable = Signal()
     
-    timer = QTimer()
-
     
     #--------------------------------------------------------------------------
     # Initialization API
@@ -87,18 +84,20 @@ class QtListStrWidget(RawWidget):
     #--------------------------------------------------------------------------
     # Signal Handlers
     #--------------------------------------------------------------------------
-    def on_timeout(self):
+    def on_libfile_change(self,itemDict):
+        print("SOMETHING CHANGED IN THE DictManager")  
         widget = self.get_widget()
-        self.get_enable(widget)
-        
+        count = widget.count()
+        '''
+        Only need to handle the checked state change here
+        Adding/Removing items is handled by the update proxy which Observers
+        changes to the display list       
         '''
         for idx in range(0,count):
             itemWidget = widget.item(idx)
-            self.get_enable(itemWidget)
-            if "pump" in itemWidget.text():
-                print(itemWidget.text())
-        '''
-                
+            itemWidget.setCheckState(Qt.Checked if itemDict[itemWidget.text()].enabled else Qt.Unchecked)
+             
+                            
     def on_selection(self):
         """ 
         The signal handler for the index changed signal.
@@ -167,6 +166,7 @@ class QtListStrWidget(RawWidget):
         """ An observer which sends state change to the proxy.
 
         """
+        print("OBSERVING ITEMS")
         # The superclass handler implementation is sufficient.
         widget =self.get_widget()
         print("WIDGET UPDATE PROXY: ",change)
