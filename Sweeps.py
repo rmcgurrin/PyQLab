@@ -17,6 +17,7 @@ import json
 import floatbits
 import FileWatcher
 import time
+import sys
 
 
 class Sweep(Atom):
@@ -152,12 +153,22 @@ class SweepLibrary(Atom):
         if self.libFile:
             self.fileWatcher = FileWatcher.LibraryFileWatcher(self.libFile, self.update_from_file)
 
+    sweepOrder
+    @observe('sweepOrder')
+    def foo(self,change):
+        #import pdb; pdb.set_trace()
+        print(change)
+
     #Overload [] to allow direct pulling of sweep info
     def __getitem__(self, sweepName):
+        print(sweepName)
         return self.sweepDict[sweepName]
 
     def _get_sweepList(self):
-        return [sweep.label for sweep in self.sweepDict.values() if sweep.enabled]
+        #import pdb; pdb.set_trace()
+        temp = [sweep.label for sweep in self.sweepDict.values() if sweep.enabled]
+        temp.insert(0,'None')
+        return temp
 
     def write_to_file(self):
         import JSONHelpers
@@ -192,10 +203,12 @@ class SweepLibrary(Atom):
                         del self.possibleInstrs[:]
                         for instr in tmpLib.possibleInstrs:
                             self.possibleInstrs.append(instr)
-                        del self.sweepOrder[:]
+                        #del self.sweepOrder[:]
+                        print("BEFORE ",self.sweepOrder)
                         for sweepStr in tmpLib.sweepOrder:
                             self.sweepOrder.append(sweepStr)
                         # grab library version
+                        print("AFTER ",self.sweepOrder)
                         self.version = tmpLib.version
             except IOError:
                 print('No sweep library found.')
@@ -210,11 +223,12 @@ class SweepLibrary(Atom):
         if self.libFile:
             with open(self.libFile, 'r') as FID:
                 try:
-                    allParams = json.load(FID)['sweepDict']
+                    jsonDict = json.load(FID)
                 except ValueError:
                     print('Failed to update instrument library from file.  Probably just half-written.')
                     return
                 # update and add new items
+                allParams = jsonDict['sweepDict']
                 for sweepName, sweepParams in allParams.items():
                     # Re-encode the strings as ascii (this should go away in Python 3)
                     sweepParams = {k.encode('ascii'):v for k,v in sweepParams.items()}
@@ -238,6 +252,11 @@ class SweepLibrary(Atom):
                     if sweepName not in allParams:
                         del self.sweepDict[sweepName]
                 
+                temp = []
+                for sweepStr in jsonDict['sweepOrder']:
+                    temp.append(sweepStr)
+                self.sweepOrder = temp
+                print(self.sweepOrder)
                 
                 '''
                 Update the display lists and signal that the list widget needs

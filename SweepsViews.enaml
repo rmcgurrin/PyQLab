@@ -366,6 +366,7 @@ enamldef SweepManager(Container): sweepManager:
     GroupBox: orderBox:
         title = 'Sweep Order'
         hug_width = 'medium'
+<<<<<<< HEAD
         constraints = [hbox(sweepNumForm,cbox1,cbox2,cbox3)]
         Form: sweepNumForm:
             hug_width = 'medium'
@@ -443,6 +444,73 @@ enamldef SweepManager(Container): sweepManager:
                 else:
                     sweepLib.sweepOrder[2] = sweepLib.sweepList[index]
                 print("ORDER: ",sweepLib.sweepOrder)
+=======
+        Form: sweepOrderForm:
+            hug_width = 'medium'
+        Form:
+            Label:
+                text = 'Sweep 1'
+            ComboBox:
+                items << sweepLib.sweepList
+                index << sweepLib.sweepList.index(sweepLib.sweepOrder[0]) if len(sweepLib.sweepOrder) > 0 else 0
+                index ::
+                    print("HELLO")
+                    if index > 0:
+                        print("INDEX is ",index,sweepLib.sweepList[index])
+                        if len(sweepLib.sweepOrder) > 0:
+                            sweepLib.sweepOrder[0] = sweepLib.sweepList[index]
+                        else:
+                            sweepLib.sweepOrder.append(sweepLib.sweepList[index])
+                    else:
+                            sweepLib.sweepOrder = []
+        
+        Form:
+            Label:
+                text = 'Sweep 2'
+            ComboBox: box2:
+                items << sweepLib.sweepList
+                index << sweepLib.sweepList.index(sweepLib.sweepOrder[1]) if len(sweepLib.sweepOrder) > 1 else 0
+                index ::
+                    print("HELLo1: ",index)
+                    if index > 0 and len(sweepLib.sweepOrder) > 1:
+                        print("HELL1: ",len(sweepLib.sweepOrder))
+                        print("INDEX is ",index,sweepLib.sweepList[index])
+                        if len(sweepLib.sweepOrder) > 1:
+                            sweepLib.sweepOrder[1] = sweepLib.sweepList[index]
+                        else:
+                            sweepLib.sweepOrder.append(sweepLib.sweepList[index])
+                    else:
+                        box2.index = 0
+                        box3.index = 0
+                        try:
+                            sweepLib.sweepOrder.pop(1)
+                        except:
+                            pass
+                        
+        Form:
+            Label:
+                text = 'Sweep 3'
+            ComboBox: box3:
+                items << sweepLib.sweepList
+                index << sweepLib.sweepList.index(sweepLib.sweepOrder[2]) if len(sweepLib.sweepOrder) > 2 else 0
+                index ::
+                    print("Hello2: ",index)
+                    if index > 0 and len(sweepLib.sweepOrder) > 2:
+                        print("HELL2: ",len(sweepLib.sweepOrder))
+                        print("INDEX is ",index,sweepLib.sweepList[index])
+                        if len(sweepLib.sweepOrder) > 2:
+                            sweepLib.sweepOrder[2] = sweepLib.sweepList[index]
+                        else:
+                            sweepLib.sweepOrder.append(sweepLib.sweepList[index])
+                    else:
+                        box3.index = 0
+                        try:
+                            sweepLib.sweepOrder.pop(2)
+                        except:
+                            pass
+                        
+                        
+>>>>>>> wip
 
 enamldef SweepManagerWindow(Window): sweepManagerTest:
     attr sweepLib
