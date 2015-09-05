@@ -1,0 +1,93 @@
+from enaml.widgets.api import Window, Label, Field, Form, Container, GroupBox, ComboBox, \
+    PushButton, SpinBox
+from enaml.stdlib.fields import FloatField, IntField
+from enaml.core.api import Conditional, Looper
+from enaml.layout.api import hbox, vbox, spacer, align
+import threading
+import time
+
+
+
+enamldef OptionView(Window): optionManager:
+    attr options
+    GroupBox: optionBox:
+        title = 'Options'
+        hug_width = 'medium'
+        Form: sweepNumForm:
+            hug_width = 'medium'
+            Label:
+                text = "Number of Options"
+            SpinBox: numOptionsBox:
+                minimum = 0
+                maximum = 3
+                value << len(options.optionOrder) if  len(options.optionOrder)  > 0 else 0
+                value ::
+                    print("NUMBER CHANGED TO: ",value)
+                    print("ORDER: ",options.optionOrder)
+                    
+                    
+                    cbox1.enabled = True
+                    cbox2.enabled = True
+                    cbox3.enabled = True
+
+                    if value == 0:
+                        cbox1.index = -1
+                        cbox2.index = -1
+                        cbox3.index = -1
+                        
+                        cbox1.enabled = False
+                        cbox2.enabled = False
+                        cbox3.enabled = False
+                        
+                        options.optionOrder=[]
+                        
+                    elif value == 1:
+                        cbox2.index = -1
+                        cbox3.index = -1
+                        
+                        cbox2.enabled = False
+                        cbox3.enabled = False
+                        
+                        options.optionOrder=options.optionOrder[0:1]
+                    
+                    elif value == 2:
+                        cbox3.index = -1
+                        cbox3.enabled = False
+                        
+                        options.optionOrder=options.optionOrder[0:2]
+                    
+                
+        ComboBox: cbox1:
+            tool_tip = "Possible Sweeps"
+            items << options.optionList
+            index << options.optionList.index(options.optionOrder[0]) if 0 < len(options.optionOrder) else -1
+            index::
+                if len(options.optionOrder) < 1:
+                    options.optionOrder.append(options.optionList[0])
+                else:
+                    options.optionOrder[0] = options.optionList[index]
+                print("ORDER: ",options.optionOrder)
+
+        ComboBox: cbox2:
+            tool_tip = "Possible Sweeps"
+            items << options.optionList
+            index << options.optionList.index(options.optionOrder[1]) if 1 < len(options.optionOrder) else -1
+            index::
+                if len(options.optionOrder) < 2:
+                    options.optionOrder.append(options.optionList[0])
+                else:
+                    options.optionOrder[1] = options.optionList[index]
+                print("ORDER: ",options.optionOrder)
+
+        ComboBox: cbox3:
+            tool_tip = "Possible Sweeps"
+            items << options.optionList  
+            index << options.optionList.index(options.optionOrder[2]) if 2 < len(options.optionOrder) else -1
+            index::
+                if len(options.optionOrder) < 3:
+                    options.optionOrder.append(options.optionList[0])
+                else:
+                    options.optionOrder[2] = options.optionList[index]
+                print("ORDER: ",options.optionOrder)
+
+        
