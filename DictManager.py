@@ -15,6 +15,7 @@ class DictManager(Atom):
     onChangeDelegate = Callable()
     
     updateWidget = Signal()
+    enableChanged = Signal()
 
     def __init__(self, itemDict={}, displayFilter=lambda x: True, **kwargs):
         self.displayFilter = displayFilter
@@ -66,6 +67,7 @@ class DictManager(Atom):
 
     def update_enable(self, itemLabel, checkState):
         self.itemDict[itemLabel].enabled = checkState
+        print('ENABLE CHANGED')
         
     def update_display_list_from_file(self,itemDict):
         '''

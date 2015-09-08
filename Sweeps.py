@@ -135,7 +135,7 @@ newSweepClasses = [Power, Frequency, HeterodyneFrequency, Attenuation, SegmentNu
 
 class SweepLibrary(Atom):
     sweepDict = Coerced(dict)
-    sweepList = Property()
+    sweepList = List()
     sweepOrder = List()
     possibleInstrs = List()
     version = Int(0)
@@ -156,7 +156,14 @@ class SweepLibrary(Atom):
     sweepOrder
     @observe('sweepOrder')
     def foo(self,change):
+        print(change)
+        print('SWEEP ORDER CHANGED')
         #import pdb; pdb.set_trace()
+        print(change)
+    
+    @observe('sweepDict')
+    def foo2(self,change):
+        print('SWEEP DICT CHANGED')
         print(change)
 
     #Overload [] to allow direct pulling of sweep info
@@ -164,10 +171,11 @@ class SweepLibrary(Atom):
         print(sweepName)
         return self.sweepDict[sweepName]
 
-    def _get_sweepList(self):
+    def getSweepList(self):
         #import pdb; pdb.set_trace()
+        print("GETTING SWEEP LIST")
         temp = [sweep.label for sweep in self.sweepDict.values() if sweep.enabled]
-        temp.insert(0,'None')
+        print(temp)
         return temp
 
     def write_to_file(self):
@@ -210,6 +218,8 @@ class SweepLibrary(Atom):
                         # grab library version
                         print("AFTER ",self.sweepOrder)
                         self.version = tmpLib.version
+                        self.sweepList = self.getSweepList()
+
             except IOError:
                 print('No sweep library found.')
                 
@@ -252,23 +262,25 @@ class SweepLibrary(Atom):
                     if sweepName not in allParams:
                         del self.sweepDict[sweepName]
                 
-                temp = []
-                for sweepStr in jsonDict['sweepOrder']:
-                    temp.append(sweepStr)
-                self.sweepOrder = temp
-                print(self.sweepOrder)
-                
                 '''
                 Update the display lists and signal that the list widget needs
                 to be updated
                 '''
                 self.sweepManager.update_display_list_from_file(itemDict=self.sweepDict)
 
+                self.sweepList = self.getSweepList()
+                temp = []
+                for sweepStr in jsonDict['sweepOrder']:
+                    temp.append(sweepStr)
+                self.sweepOrder = temp
+                print(self.sweepOrder)
+                
     def json_encode(self, matlabCompatible=False):
             if matlabCompatible:
                 #  re-assign based on sweepOrder
                 for ct, sweep in enumerate(self.sweepOrder):
-                  self.sweepDict[sweep].order = ct+1
+                    print(ct,sweep)    
+                    self.sweepDict[sweep].order = ct+1
                 return {label:sweep for label,sweep in self.sweepDict.items() if label in self.sweepOrder}
             else:
                 return {
