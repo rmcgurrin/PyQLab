@@ -1,4 +1,4 @@
-from atom.api import (Atom, List, ContainerList, Dict, observe, Callable, Typed, Unicode, Signal)
+from atom.api import (Atom, List, ContainerList, Dict, observe, Callable, Typed, Unicode, Signal, Bool, Coerced)
 
 import enaml
 
@@ -8,15 +8,15 @@ class DictManager(Atom):
     Control - Presenter for a dictionary of items.
     i.e. give the ability to add/delete rename items
     """
-    itemDict = Typed(dict)
+    itemDict = Coerced(dict)
     displayFilter = Callable() # filter which items to display later
     possibleItems = List() # a list of classes that can possibly be added to this list
     displayList = ContainerList()
     onChangeDelegate = Callable()
     
     updateWidget = Signal()
-    enableChanged = Signal()
-
+    updateComboBox = Signal()
+    
     def __init__(self, itemDict={}, displayFilter=lambda x: True, **kwargs):
         self.displayFilter = displayFilter
         super(DictManager, self).__init__(itemDict=itemDict, displayFilter=displayFilter, **kwargs)
@@ -64,10 +64,13 @@ class DictManager(Atom):
 
         if self.onChangeDelegate:
             self.onChangeDelegate(oldLabel, newLabel)
+        print("NAME CHANGED")
+        self.updateComboBox(self.itemDict)
 
     def update_enable(self, itemLabel, checkState):
         self.itemDict[itemLabel].enabled = checkState
         print('ENABLE CHANGED')
+        self.updateComboBox(self.itemDict)
         
     def update_display_list_from_file(self,itemDict):
         '''

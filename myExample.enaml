@@ -6,7 +6,8 @@ from enaml.layout.api import hbox, vbox, spacer, align
 import threading
 import time
 
-
+def foo():
+    return sweepLib.sweepList
 
 enamldef OptionView(Window): optionManager:
     attr options
@@ -59,7 +60,7 @@ enamldef OptionView(Window): optionManager:
                 
         ComboBox: cbox1:
             tool_tip = "Possible Sweeps"
-            items << options.optionList
+            items << foo()
             index << options.optionList.index(options.optionOrder[0]) if 0 < len(options.optionOrder) else -1
             index::
                 if len(options.optionOrder) < 1:

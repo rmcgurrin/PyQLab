@@ -3,7 +3,7 @@ Various sweeps for scanning experiment parameters
 """
 
 from atom.api import Atom, Str, Float, Int, Bool, Dict, List, Enum, \
-    Coerced, Property, Typed, observe, cached_property, Int
+    Coerced, Property, Typed, observe, cached_property, Int, Signal
 import enaml
 from enaml.qt.qt_application import QtApplication
 
@@ -141,6 +141,7 @@ class SweepLibrary(Atom):
     version = Int(0)
 
     sweepManager = Typed(DictManager)
+    updateItems = Signal()
 
     libFile = Str()
     fileWatcher = Typed(FileWatcher.LibraryFileWatcher)
@@ -274,6 +275,8 @@ class SweepLibrary(Atom):
                     temp.append(sweepStr)
                 self.sweepOrder = temp
                 print(self.sweepOrder)
+                
+                self.updateItems(self._get_sweepList())
                 
                 
     def json_encode(self, matlabCompatible=False):
