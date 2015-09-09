@@ -17,7 +17,7 @@ import json
 import floatbits
 import FileWatcher
 import time
-import sys
+import sys, os
 
 
 class Sweep(Atom):
@@ -135,7 +135,7 @@ newSweepClasses = [Power, Frequency, HeterodyneFrequency, Attenuation, SegmentNu
 
 class SweepLibrary(Atom):
     sweepDict = Coerced(dict)
-    sweepList = List()
+    sweepList = Property()
     sweepOrder = List()
     possibleInstrs = List()
     version = Int(0)
@@ -171,10 +171,10 @@ class SweepLibrary(Atom):
         print(sweepName)
         return self.sweepDict[sweepName]
 
-    def getSweepList(self):
+    def _get_sweepList(self):
         #import pdb; pdb.set_trace()
-        print("GETTING SWEEP LIST")
         temp = [sweep.label for sweep in self.sweepDict.values() if sweep.enabled]
+        print("GETTING SWEEP LIST")
         print(temp)
         return temp
 
@@ -218,7 +218,7 @@ class SweepLibrary(Atom):
                         # grab library version
                         print("AFTER ",self.sweepOrder)
                         self.version = tmpLib.version
-                        self.sweepList = self.getSweepList()
+                        #self.sweepList = self.getSweepList()
 
             except IOError:
                 print('No sweep library found.')
@@ -268,12 +268,13 @@ class SweepLibrary(Atom):
                 '''
                 self.sweepManager.update_display_list_from_file(itemDict=self.sweepDict)
 
-                self.sweepList = self.getSweepList()
+                #self.sweepList = self.getSweepList()
                 temp = []
                 for sweepStr in jsonDict['sweepOrder']:
                     temp.append(sweepStr)
                 self.sweepOrder = temp
                 print(self.sweepOrder)
+                
                 
     def json_encode(self, matlabCompatible=False):
             if matlabCompatible:

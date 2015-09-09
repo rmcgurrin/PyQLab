@@ -8,7 +8,7 @@ from QGL.ChannelsViews import ChannelLibraryView
 from instruments.InstrumentManagerView import InstrumentManagerView
 from SweepsViews import SweepManager
 from MeasFiltersViews import MeasFilterManager
-import os
+import os, sys, time
 
 
 #See what's in the quick pick file to enumerate it
@@ -122,7 +122,10 @@ enamldef ExpSettingsView(MainWindow): main:
 						os.mkdir(path)
 					
 					if expSettings.load_config(path):
-						NotificationPopup(main, window_type='window', displayText="New Config Loaded").show()
+						NotificationPopup(main, window_type='window', displayText="New Config Loaded ... Restarting GUI").show()
+						os.execv('./ExpSettingsGUI.py', sys.argv)
+
+						
 					else:
 						ep = ErrorPopup(displayText=expSettings.format_errors())
 						ep.show()

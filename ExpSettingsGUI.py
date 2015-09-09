@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import h5py
 from atom.api import Atom, Typed, Str, Bool, List
 
@@ -73,6 +74,7 @@ class ExpSettings(Atom):
         
     def save_config(self,path):
         
+        self.write_libraries()
         try:
             shutil.copy(self.channels.libFile,path)
             shutil.copy(self.instruments.libFile,path)

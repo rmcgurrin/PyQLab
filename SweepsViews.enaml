@@ -11,6 +11,9 @@ import Sweeps
 
 from instruments.AWGs import AWG
 
+def foo(bar):
+    print("HELLO")
+    
 enamldef PointsSweepForm(GroupBox):
     attr sweep
     attr possibleInstrs
@@ -430,14 +433,16 @@ enamldef SweepManager(Container): sweepManager:
                 
         ComboBox: cbox1:
             tool_tip = "Possible Sweeps"
-            items << sweepLib.sweepList
+            items := sweepLib.sweepList
             index << sweepLib.sweepList.index(sweepLib.sweepOrder[0]) if 0 < len(sweepLib.sweepOrder) and sweepLib.sweepOrder[0] in  sweepLib.sweepList else -1
             index::
+                print("ITEMS: ",items)
                 if len(sweepLib.sweepOrder) < 1:
                     sweepLib.sweepOrder.append(sweepLib.sweepList[0])
                 else:
                     sweepLib.sweepOrder[0] = sweepLib.sweepList[index]
                 print("ORDER: ",sweepLib.sweepOrder)
+                print("LIST:",sweepLib.sweepList)
             initialized::
                 index = -1
                 enabled = False
@@ -452,6 +457,7 @@ enamldef SweepManager(Container): sweepManager:
                 else:
                     sweepLib.sweepOrder[1] = sweepLib.sweepList[index]
                 print("ORDER: ",sweepLib.sweepOrder)
+                print("LIST:",sweepLib.sweepList)
             initialized::
                 index = -1
                 enabled = False

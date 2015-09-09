@@ -11,13 +11,11 @@ class Options(Atom):
     optionOrder = List()
     optionOrderTemp = List()
     optionOrderUpdate = Bool(False)
-    optionOrderLen = Int(0)
     
     fileToWatch = Str()
     fileWatcher = Typed(FileWatcher.LibraryFileWatcher)
     
     somethingChanged = Signal()
-    reset=Bool(False)
     
     text=Str()
     
@@ -26,9 +24,7 @@ class Options(Atom):
         if self.fileToWatch:
             print('Watching %s'%self.fileToWatch)
             self.fileWatcher = FileWatcher.LibraryFileWatcher(self.fileToWatch, self.readFile)
-            self.somethingChanged.connect(self.update_from_file)
-            self.reset = False
-            self.optionOrderLen = len(self.optionOrder)
+            #self.somethingChanged.connect(self.update_from_file)
     
     
     @observe('optionOrder')
@@ -39,8 +35,6 @@ class Options(Atom):
         print("UPDATING...")
         self.optionOrder = newOptionOrder
         self.optionOrderUpdate = True
-        self.optionOrderLen = len(newOptionOrder)
-        self.reset = True
         
     def readFile(self):
         print("FILE CHANGED...")
@@ -54,7 +48,8 @@ class Options(Atom):
                 return
             
             print(temp[0])
-            self.somethingChanged(temp[0])
+            #self.somethingChanged(temp[0])
+            self.update_from_file(temp[0])
 
 if __name__ == '__main__':
 
