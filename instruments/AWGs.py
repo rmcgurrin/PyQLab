@@ -16,6 +16,8 @@ from glob import glob
 from importlib import import_module
 import os
 import inspect
+from drivers.APS import APS
+
 
 AWGList = []
 
