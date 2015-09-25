@@ -243,12 +243,6 @@ enamldef StateComparatorView(GroupBox):
         EnumComboBox:
             obj := myFilter
             enumName = 'plotMode'
-        Label:
-            text = 'Child filter'
-        ComboBox:
-            items << filterLib.filterDict.keys()
-            index << filterLib.filterDict.keys().index(myFilter.childFilter) if myFilter.childFilter else -1
-            index :: myFilter.childFilter = filterLib.filterDict.keys()[index]
 
 enamldef StreamSelectorView(GroupBox):
     attr myFilter
